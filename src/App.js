@@ -1,13 +1,17 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./App.css";
+import "antd/dist/antd.css";
+import { Spin } from "antd";
 import * as tf from "@tensorflow/tfjs";
 import * as posenet from "@tensorflow-models/posenet";
 import Webcam from "react-webcam";
 import { drawKeypoints, drawSkeleton } from "./utilities";
 
 function App() {
+  const [loading, setLoading] = useState(true);
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  useEffect(() => setTimeout(() => setLoading(false), 7000), []);
 
   //  Load posenet
   const runPosenet = async () => {
@@ -18,11 +22,10 @@ function App() {
     //
     setInterval(() => {
       detect(net);
-    }, 100);
+    }, 200);
   };
 
   const detect = async (net) => {
-    console.log(webcamRef.current?.video?.readyState);
     // console.log(webcamRef.current.stream);
     if (webcamRef.current) {
       // Get Video Properties
@@ -37,7 +40,6 @@ function App() {
       // Make Detections
       const pose = await net.estimateSinglePose(video);
       console.log(pose);
-
       drawCanvas(pose, video, videoWidth, videoHeight, canvasRef);
     }
   };
@@ -59,13 +61,27 @@ function App() {
 
   return (
     <div className="App">
-      <Webcam
-        ref={webcamRef}
-        className={"video"}
-        videoConstraints={videoConstraints}
-      />
-
-      <canvas ref={canvasRef} className={"video"} />
+      {loading ? (
+        <div className="loading">
+          <p>
+            Дипломный проект разработан студентом группы МС-3 Корольковым А.В..
+          </p>
+          <br />
+          <p>Тема диплома: Система анализа посадки велосипедиста.</p>
+          <p className="spiner">Loading.</p>
+          <Spin />
+        </div>
+      ) : (
+        <>
+          <Webcam
+            ref={webcamRef}
+            className={"video"}
+            videoConstraints={videoConstraints}
+          />
+          <canvas ref={canvasRef} className={"video"} />
+          {/*See Notification there */}
+        </>
+      )}
     </div>
   );
 }
